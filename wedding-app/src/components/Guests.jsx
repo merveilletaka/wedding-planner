@@ -36,10 +36,17 @@ export default function Guests() {
 
   async function save() {
     if (!form.name.trim()) return
+    const payload = {
+      ...form,
+      table_id: form.table_id || null,
+      email: form.email || null,
+      phone: form.phone || null,
+      notes: form.notes || null,
+    }
     if (editing) {
-      await supabase.from('guests').update(form).eq('id', editing)
+      await supabase.from('guests').update(payload).eq('id', editing)
     } else {
-      await supabase.from('guests').insert(form)
+      await supabase.from('guests').insert(payload)
     }
     setShowModal(false)
     setEditing(null)
