@@ -58,6 +58,9 @@ export default function Guests() {
 
   async function save() {
     if (!form.name.trim()) return
+    if (dupWarning && !editing) {
+      if (!confirm('Un invité similaire existe déjà. Continuer quand même ?')) return
+    }
     const payload = {
       name: form.name.trim(),
       email: form.email || null,
