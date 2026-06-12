@@ -41,9 +41,10 @@ export default function Guests() {
 
   async function checkDuplicate(name) {
     if (!name.trim() || name.length < 2) { setDupWarning(null); return }
-    const { data } = await supabase.from('guests').select('name').ilike('name', `%${name.trim()}%`)
-    if (data && data.length > 0 && !editing) {
-      setDupWarning(`⚠️ Un invité similaire existe déjà : ${data.map(d => d.name).join(', ')}`)
+    const { data } = await supabase.from('guests').select('id,name').ilike('name', `%${name.trim()}%`)
+    const matches = (data || []).filter(d => editing ? d.id !== editing : true)
+    if (matches.length > 0) {
+      setDupWarning(`⚠️ Doublon possible : ${matches.map(d => d.name).join(', ')}`)
     } else {
       setDupWarning(null)
     }
@@ -139,21 +140,18 @@ export default function Guests() {
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         <input placeholder="Rechercher…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: 160 }} />
-      </div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
-        {[['tous','Tous'],['confirmé','Confirmés'],['en attente','En attente'],['décliné','Déclinés']].map(([v, l]) => (
-          <button key={v} className="btn btn-sm" onClick={() => setFilterRsvp(v)}
-            style={{ background: filterRsvp === v ? 'var(--deep)' : 'var(--white)', color: filterRsvp === v ? '#fff' : 'var(--deep)', border: '1.5px solid var(--border)', flexShrink: 0 }}>{l}</button>
-        ))}
-        <span style={{ width: 1, background: 'var(--border)', margin: '0 4px' }} />
-        {['tous', ...GROUPS].map(v => (
-          <button key={v} className="btn btn-sm" onClick={() => setFilterGroup(v)}
-            style={{ background: filterGroup === v ? 'var(--rose)' : 'var(--white)', color: filterGroup === v ? '#fff' : 'var(--deep)', border: '1.5px solid var(--border)', flexShrink: 0 }}>
-            {v === 'tous' ? 'Tous groupes' : v}
-          </button>
-        ))}
+        <select value={filterRsvp} onChange={e => setFilterRsvp(e.target.value)} style={{ width: 'auto', minWidth: 130 }}>
+          <option value="tous">Tous RSVP</option>
+          <option value="confirmé">Confirmés</option>
+          <option value="en attente">En attente</option>
+          <option value="décliné">Déclinés</option>
+        </select>
+        <select value={filterGroup} onChange={e => setFilterGroup(e.target.value)} style={{ width: 'auto', minWidth: 160 }}>
+          <option value="tous">Tous groupes</option>
+          {GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
+        </select>
       </div>
 
       {loading ? (
